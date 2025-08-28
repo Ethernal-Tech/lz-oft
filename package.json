@@ -78,5 +78,8 @@
     "test": "test"
   },
   "keywords": [],
-  "author": ""
+  "author": "",
+  "dependencies": {
+    "@layerzerolabs/oft-evm-upgradeable": "^3.1.0"
+  }
 }
