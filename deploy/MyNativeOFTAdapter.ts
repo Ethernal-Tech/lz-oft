@@ -1,52 +1,56 @@
-import assert from 'assert'
+import assert from "assert";
 
-import { type DeployFunction } from 'hardhat-deploy/types'
+import { type DeployFunction } from "hardhat-deploy/types";
 
-const contractName = 'MyNativeOFTAdapter'
+const contractName = "MyNativeOFTAdapter";
 
 const deploy: DeployFunction = async (hre) => {
-    const { getNamedAccounts, deployments } = hre
+  const { getNamedAccounts, deployments } = hre;
 
-    const { deploy } = deployments
-    const { deployer } = await getNamedAccounts()
+  const { deploy } = deployments;
+  const { deployer } = await getNamedAccounts();
 
-    assert(deployer, 'Missing named deployer account')
+  assert(deployer, "Missing named deployer account");
 
-    console.log(`Network: ${hre.network.name}`)
-    console.log(`Deployer: ${deployer}`)
+  console.log(`Network: ${hre.network.name}`);
+  console.log(`Deployer: ${deployer}`);
 
-    // This is an external deployment pulled in from @layerzerolabs/lz-evm-sdk-v2
-    //
-    // @layerzerolabs/toolbox-hardhat takes care of plugging in the external deployments
-    // from @layerzerolabs packages based on the configuration in your hardhat config
-    //
-    // For this to work correctly, your network config must define an eid property
-    // set to `EndpointId` as defined in @layerzerolabs/lz-definitions
-    //
-    // For example:
-    //
-    // networks: {
-    //   fuji: {
-    //     ...
-    //     eid: EndpointId.AVALANCHE_V2_TESTNET
-    //   }
-    // }
-    const endpointV2Deployment = await hre.deployments.get('EndpointV2')
+  // This is an external deployment pulled in from @layerzerolabs/lz-evm-sdk-v2
+  //
+  // @layerzerolabs/toolbox-hardhat takes care of plugging in the external deployments
+  // from @layerzerolabs packages based on the configuration in your hardhat config
+  //
+  // For this to work correctly, your network config must define an eid property
+  // set to `EndpointId` as defined in @layerzerolabs/lz-definitions
+  //
+  // For example:
+  //
+  // networks: {
+  //   fuji: {
+  //     ...
+  //     eid: EndpointId.AVALANCHE_V2_TESTNET
+  //   }
+  // }
+  const endpointV2Deployment = await hre.deployments.get("EndpointV2");
 
-    const { address } = await deploy(contractName, {
-        from: deployer,
-        args: [
-            18, // TODO update this with native local decimals
-            endpointV2Deployment.address, // LayerZero's EndpointV2 address
-            deployer, // owner
-        ],
-        log: true,
-        skipIfAlreadyDeployed: false,
-    })
+  const currentNonce = await hre.ethers.provider.getTransactionCount(deployer, "pending");
+  console.log("Current nonce:", currentNonce);
 
-    console.log(`Deployed contract: ${contractName}, network: ${hre.network.name}, address: ${address}`)
-}
+  const { address } = await deploy(contractName, {
+    from: deployer,
+    args: [
+      18, // TODO update this with native local decimals
+      endpointV2Deployment.address, // LayerZero's EndpointV2 address
+      deployer, // owner
+    ],
+    log: true,
+    skipIfAlreadyDeployed: false,
+    nonce: currentNonce + 1,
+  });
 
-deploy.tags = [contractName]
+  console.log(`Deployed contract: ${contractName}, network: ${hre.network.name}, address: ${address}`);
+};
 
-export default deploy
+deploy.tags = [contractName];
+
+export default deploy;

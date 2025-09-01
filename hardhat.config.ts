@@ -68,8 +68,13 @@ const config: HardhatUserConfig = {
       accounts,
     },
     "nexus-testnet": {
-      eid: Number(process.env.EID_NEXUS),
-      url: process.env.RPC_URL_NEXUS || "https://rpc.nexus.testnet.apexfusion.org",
+      eid: EndpointId.APEXFUSIONNEXUS_V2_TESTNET,
+      url: process.env.RPC_URL_NEXUS_TESTNET || "https://rpc.nexus.testnet.apexfusion.org",
+      accounts,
+    },
+    "nexus-mainnet": {
+      eid: EndpointId.APEXFUSIONNEXUS_V2_MAINNET,
+      url: process.env.RPC_URL_NEXUS_MAINNET || "https://rpc.nexus.mainnet.apexfusion.org",
       accounts,
     },
     hardhat: {
