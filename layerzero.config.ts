@@ -6,12 +6,12 @@ import type { OAppOmniGraphHardhat, OmniPointHardhat } from "@layerzerolabs/tool
  *  WARNING: ONLY 1 NativeOFTAdapter should exist for a given global mesh.
  */
 const nexusContract: OmniPointHardhat = {
-  eid: EndpointId.APEXFUSIONNEXUS_V2_TESTNET,
+  eid: EndpointId.APEXFUSIONNEXUS_V2_MAINNET,
   contractName: "MyNativeOFTAdapter",
 };
 
-const sepoliaContract: OmniPointHardhat = {
-  eid: EndpointId.SEPOLIA_V2_TESTNET,
+const baseContract: OmniPointHardhat = {
+  eid: EndpointId.BASE_V2_MAINNET,
   contractName: "MyOFT",
 };
 
@@ -21,16 +21,16 @@ const config: OAppOmniGraphHardhat = {
       contract: nexusContract,
     },
     {
-      contract: sepoliaContract,
+      contract: baseContract,
     },
   ],
   connections: [
     {
       from: nexusContract,
-      to: sepoliaContract,
+      to: baseContract,
     },
     {
-      from: sepoliaContract,
+      from: baseContract,
       to: nexusContract,
     },
   ],
