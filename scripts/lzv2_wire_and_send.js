@@ -88,44 +88,44 @@ async function main() {
     console.log("  ✓ Nexus already wired to Base: ", currentPeerOnBase.toLowerCase());
   }
 
-  const ENDPOINT_ABI = [
-    "function setConfig(address _oapp, address _lib, (uint32 eid,uint32 configType,bytes config)[] params) external",
-  ];
+  // const ENDPOINT_ABI = [
+  //   "function setConfig(address _oapp, address _lib, (uint32 eid,uint32 configType,bytes config)[] params) external",
+  // ];
 
-  // EndpointV2 (Nexus)
-  const endpoint = new ethers.Contract("0x6F475642a6e85809B1c36Fa62763669b1b48DD5B", ENDPOINT_ABI, walletNexus);
+  // // EndpointV2 (Nexus)
+  // const endpoint = new ethers.Contract("0x6F475642a6e85809B1c36Fa62763669b1b48DD5B", ENDPOINT_ABI, walletNexus);
 
-  const params = [
-    {
-      eid: 30184, // Base EID
-      configType: 2, // Executor config
-      config: ethers.utils.defaultAbiCoder.encode(
-        ["address", "bytes"],
-        ["0x4208D6E27538189bB48E603D6123A94b8Abe0A0b", "0x"] // executor + extra args
-      ),
-    },
-  ];
+  // const params = [
+  //   {
+  //     eid: 30184, // Base EID
+  //     configType: 2, // Executor config
+  //     config: ethers.utils.defaultAbiCoder.encode(
+  //       ["address", "bytes"],
+  //       ["0x4208D6E27538189bB48E603D6123A94b8Abe0A0b", "0x"] // executor + extra args
+  //     ),
+  //   },
+  // ];
 
-  await endpoint.setConfig(
-    "0x012e277911730eE56B7a738Ca306eFB338b11BD4", // your OFT/OApp
-    "0xC39161c743D0307EB9BCc9FEF03eeb9Dc4802de7", // sendUln302
-    params,
-    { gasLimit: 500_000 } // set enough gas
-  );
-  console.log("DONE");
+  // await endpoint.setConfig(
+  //   "0x012e277911730eE56B7a738Ca306eFB338b11BD4", // your OFT/OApp
+  //   "0xC39161c743D0307EB9BCc9FEF03eeb9Dc4802de7", // sendUln302
+  //   params,
+  //   { gasLimit: 500_000 } // set enough gas
+  // );
+  // console.log("DONE");
 
   // console.log(Object.keys(oft_Base.functions));
 
   // 1) Send native Nexus -> Sepolia
 
-  const options = Options.newOptions().addExecutorLzReceiveOption(200000, 0).toHex();
+  const options = Options.newOptions().addExecutorLzReceiveOption(0, 0).toHex();
 
   const sendParamNexus = {
     dstEid: EID_BASE,
     to: toBytes32Address(OWNER_ADDRESS),
     amountLD: ethers.utils.parseUnits("0.01", 18),
-    minAmountLD: 0,
-    extraOptions: options,
+    minAmountLD: ethers.utils.parseUnits("0.01", 18),
+    extraOptions: "0x",
     composeMsg: "0x",
     oftCmd: "0x",
   };
@@ -133,13 +133,13 @@ async function main() {
   // 3) Quote the fee
   let nativeFee;
   // try {
-  const feeResponse = await nativeOFT_Nexus.quoteSend(sendParamNexus, false);
-  console.log(feeResponse);
-  nativeFee = feeResponse.nativeFee;
-  console.log("Quoted fee:", fmt(nativeFee), "tAPEX");
+  //   const feeResponse = await nativeOFT_Nexus.quoteSend(sendParamNexus, false);
+  //   console.log(feeResponse);
+  //   nativeFee = feeResponse.nativeFee;
+  //   console.log("Quoted fee:", fmt(nativeFee), "tAPEX");
   // } catch (e) {
-  console.warn("Quote failed, using fallback fee 0.3 tAPEX");
-  nativeFee = ethers.utils.parseUnits("0.3", 18);
+  //   console.warn("Quote failed, using fallback fee 0.3 tAPEX");
+  //   nativeFee = ethers.utils.parseUnits("0.3", 18);
   // }
 
   // // Dry-run with callStatic
@@ -193,37 +193,37 @@ async function main() {
   // if (!ok) console.log("\nBalance not updated yet — delivery may be in-flight.");
   // console.log("All steps done ✅");
 
-  // // Sending Back tokens to Sepolia
-  // const sendParamAmoy = {
-  //   dstEid: EID_SEPOLIA,
-  //   to: toBytes32Address(OWNER_ADDRESS),
-  //   amountLD: ethers.utils.parseUnits("2", 18),
-  //   minAmountLD: 0,
-  //   extraOptions: options,
-  //   composeMsg: "0x",
-  //   oftCmd: "0x",
-  // };
+  // Sending Back tokens to Sepolia
+  const sendParamBase = {
+    dstEid: EID_NEXUS,
+    to: toBytes32Address(OWNER_ADDRESS),
+    amountLD: ethers.utils.parseUnits("0.01", 18),
+    minAmountLD: ethers.utils.parseUnits("0.01", 18),
+    extraOptions: "0x",
+    composeMsg: "0x",
+    oftCmd: "0x",
+  };
 
-  // try {
-  //   const feeResponse = await oft_Amoy.quoteSend(sendParamAmoy, false);
-  //   nativeFee = feeResponse.nativeFee;
-  //   console.log("Quoted fee:", fmt(nativeFee), "POL");
-  // } catch (e) {
-  //   console.warn("Quote failed, using fallback fee 0.3 POL");
-  //   nativeFee = ethers.utils.parseUnits("0.3", 18);
-  // }
+  try {
+    const feeResponse = await oft_Base.quoteSend(sendParamBase, false);
+    nativeFee = feeResponse.nativeFee;
+    console.log("Quoted fee:", fmt(nativeFee), "POL");
+  } catch (e) {
+    console.warn("Quote failed, using fallback fee 0.3 POL");
+    nativeFee = ethers.utils.parseUnits("0.3", 18);
+  }
 
-  // try {
-  //   txSend = await oft_Amoy.send(sendParamAmoy, { nativeFee, lzTokenFee: 0 }, walletAmoy.address, {
-  //     value: sendParamAmoy.amountLD.add(nativeFee), // only once!
-  //     gasLimit: 1_500_000,
-  //   });
-  //   await txSend.wait();
-  //   console.log("Send tx hash:", txSend.hash);
-  // } catch (e) {
-  //   console.error("Send failed:", e);
-  //   process.exit(1);
-  // }
+  try {
+    txSend = await oft_Base.send(sendParamBase, { nativeFee, lzTokenFee: 0 }, walletBase.address, {
+      value: nativeFee, // only once!
+      gasLimit: 1_500_000,
+    });
+    await txSend.wait();
+    console.log("Send tx hash:", txSend.hash);
+  } catch (e) {
+    console.error("Send failed:", e);
+    process.exit(1);
+  }
 
   // sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   // ok = false;
