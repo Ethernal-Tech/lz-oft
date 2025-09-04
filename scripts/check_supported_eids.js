@@ -8,42 +8,42 @@ const OFT_ABI = [
 ];
 
 async function main() {
-  const { RPC_URL_SEPOLIA, RPC_URL_NEXUS, ADDR_NEXUS_NATIVE_OFT, ADDR_SEPOLIA_OFT, EID_NEXUS, EID_SEPOLIA } =
+  const { RPC_URL_NEXUS_MAINNET, RPC_URL_BASE, ADDR_NEXUS_NATIVE_OFT, ADDR_BASE_OFT, EID_NEXUS, EID_BASE } =
     process.env;
-  if (!RPC_URL_SEPOLIA || !RPC_URL_NEXUS || !ADDR_NEXUS_NATIVE_OFT || !ADDR_SEPOLIA_OFT || !EID_NEXUS || !EID_SEPOLIA) {
+  if (!RPC_URL_NEXUS_MAINNET || !RPC_URL_BASE || !ADDR_NEXUS_NATIVE_OFT || !ADDR_BASE_OFT || !EID_NEXUS || !EID_BASE) {
     throw new Error(
-      "Missing RPC_URL_SEPOLIA or RPC_URL_NEXUS or ADDR_SEPOLIA_NATIVE_OFT or ADDR_NEXUS_NATIVE_OFT or EID_NEXUS or EID_SEPOLIA in env"
+      "Missing RPC_URL_NEXUS_MAINNET or RPC_URL_BASE or ADDR_BASE_OFT or ADDR_NEXUS_NATIVE_OFT or EID_NEXUS or EID_BASE in env"
     );
   }
 
-  const providerNexus = new ethers.providers.JsonRpcProvider(RPC_URL_NEXUS);
-  const providerSepolia = new ethers.providers.JsonRpcProvider(RPC_URL_SEPOLIA);
+  const providerNexus = new ethers.providers.JsonRpcProvider(RPC_URL_NEXUS_MAINNET);
+  const providerBase = new ethers.providers.JsonRpcProvider(RPC_URL_BASE);
 
   const oftNexusNative = new ethers.Contract(ADDR_NEXUS_NATIVE_OFT, OFT_ABI, providerNexus);
-  const oftSepolia = new ethers.Contract(ADDR_SEPOLIA_OFT, OFT_ABI, providerSepolia);
+  const oftBase = new ethers.Contract(ADDR_BASE_OFT, OFT_ABI, providerBase);
 
   function bytes32ToAddress(bytes32) {
     return ethers.utils.getAddress("0x" + bytes32.slice(26));
   }
 
-  const peerSepolia = await oftSepolia.peers(EID_NEXUS);
-  if (bytes32ToAddress(peerSepolia) == ADDR_NEXUS_NATIVE_OFT) {
-    console.log(`  ✅ EID ${EID_NEXUS} NEXUS supported on SEPOLIA, peer: ${bytes32ToAddress(peerSepolia)}`);
+  const peerNexus = await oftNexusNative.peers(EID_BASE);
+  if (bytes32ToAddress(peerNexus) == ADDR_BASE_OFT) {
+    console.log(`  ✅ EID ${EID_BASE} BASE supported on NEXUS, peer: ${bytes32ToAddress(peerNexus)}`);
   } else {
-    console.log(`  ❌ EID ${EID_AMOY} NEXUS not set on SEPOLIA`);
+    console.log(`  ❌ EID ${EID_BASE} BASE not set on NEXUS`);
   }
 
-  const peerNexus = await oftNexusNative.peers(EID_SEPOLIA);
-  if (bytes32ToAddress(peerNexus) == ADDR_SEPOLIA_OFT) {
-    console.log(`  ✅ EID ${EID_SEPOLIA} SEPOLIA supported on NEXUS, peer: ${bytes32ToAddress(peerNexus)}`);
+  const peerBase = await oftBase.peers(EID_NEXUS);
+  if (bytes32ToAddress(peerBase) == ADDR_NEXUS_NATIVE_OFT) {
+    console.log(`  ✅ EID ${EID_NEXUS} NEXUS supported on Base, peer: ${bytes32ToAddress(peerBase)}`);
   } else {
-    console.log(`  ❌ EID ${EID_SEPOLIA} SEPOLIA not set on NEXUS`);
+    console.log(`  ❌ EID ${EID_NEXUS} NEXUS not set on Base`);
   }
 
-  const EP_addressSepolia = await oftSepolia.endpoint();
+  const EP_addressBase = await oftBase.endpoint();
   const EP_addressNexus = await oftNexusNative.endpoint();
 
-  console.log(`  - Sepolia OFT Endpoint: ${EP_addressSepolia}`);
+  console.log(`  - Base OFT Endpoint: ${EP_addressBase}`);
   console.log(`  - Nexus OFT Endpoint: ${EP_addressNexus}`);
 }
 

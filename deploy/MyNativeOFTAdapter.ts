@@ -32,6 +32,10 @@ const deploy: DeployFunction = async (hre) => {
   //   }
   // }
   const endpointV2Deployment = await hre.deployments.get("EndpointV2");
+  const currentNonce = await hre.ethers.provider.getTransactionCount(deployer, "pending");
+  console.log("Pending nonce:", currentNonce);
+  const currentNonceLatest = await hre.ethers.provider.getTransactionCount(deployer, "latest");
+  console.log("Latest nonce:", currentNonceLatest);
 
   const { address } = await deploy(contractName, {
     from: deployer,

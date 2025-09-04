@@ -12,7 +12,7 @@
 //   LZV2_DVNS_JSON=[ "0x...", ... ]
 //   LZV2_EXECUTOR=0x...
 require("dotenv").config();
-const { ethers } = require("ethers");
+const { ethers, utils } = require("ethers");
 const NativeOFTAdapterArtifact = require("../artifacts/contracts/MyNativeOFTAdapter.sol/MyNativeOFTAdapter.json");
 const OFTArtifact = require("../artifacts/contracts/MyOFT.sol/MyOFT.json");
 const { Options } = require("@layerzerolabs/lz-v2-utilities");
@@ -28,107 +28,109 @@ async function main() {
   const {
     OWNER_ADDRESS,
     PRIVATE_KEY,
-    RPC_URL_SEPOLIA,
-    RPC_URL_AMOY,
-    RPC_URL_NEXUS,
-    ADDR_SEPOLIA_NATIVE_OFT,
-    ADDR_AMOY_OFT,
+    RPC_URL_NEXUS_MAINNET,
+    RPC_URL_BASE,
     ADDR_NEXUS_NATIVE_OFT,
-    ADDR_SEPOLIA_OFT,
+    ADDR_BASE_OFT,
     SEND_AMOUNT,
-    EID_AMOY,
-    EID_SEPOLIA,
     EID_NEXUS,
+    EID_BASE,
   } = process.env;
 
   if (
     !OWNER_ADDRESS ||
     !PRIVATE_KEY ||
-    !RPC_URL_SEPOLIA ||
-    !RPC_URL_AMOY ||
-    !ADDR_SEPOLIA_NATIVE_OFT ||
-    !ADDR_AMOY_OFT
+    !RPC_URL_NEXUS_MAINNET ||
+    !RPC_URL_BASE ||
+    !ADDR_NEXUS_NATIVE_OFT ||
+    !ADDR_BASE_OFT
   ) {
     throw new Error("Missing one of the required env vars");
   }
 
-  const amount = ethers.utils.parseUnits(SEND_AMOUNT || "0.5", 18);
+  // const amount = ethers.utils.parseUnits(SEND_AMOUNT || "0.5", 18);
 
-  const provSepolia = new ethers.providers.JsonRpcProvider(RPC_URL_SEPOLIA);
-  const provAmoy = new ethers.providers.JsonRpcProvider(RPC_URL_AMOY);
-  const provNexus = new ethers.providers.JsonRpcProvider(RPC_URL_NEXUS);
-  const walletSepolia = new ethers.Wallet(PRIVATE_KEY, provSepolia);
-  const walletAmoy = new ethers.Wallet(PRIVATE_KEY, provAmoy);
+  const provNexus = new ethers.providers.JsonRpcProvider(RPC_URL_NEXUS_MAINNET);
+  const provBase = new ethers.providers.JsonRpcProvider(RPC_URL_BASE);
+
   const walletNexus = new ethers.Wallet(PRIVATE_KEY, provNexus);
+  const walletBase = new ethers.Wallet(PRIVATE_KEY, provBase);
 
-  const nativeOFT_Sepolia = new ethers.Contract(ADDR_SEPOLIA_NATIVE_OFT, NATIVE_OFT_ADAPTER_ABI, walletSepolia);
-  const oft_Amoy = new ethers.Contract(ADDR_AMOY_OFT, OFT_ABI, walletAmoy);
   const nativeOFT_Nexus = new ethers.Contract(ADDR_NEXUS_NATIVE_OFT, NATIVE_OFT_ADAPTER_ABI, walletNexus);
-  const oft_Sepolia = new ethers.Contract(ADDR_SEPOLIA_OFT, OFT_ABI, walletSepolia);
+  const oft_Base = new ethers.Contract(ADDR_BASE_OFT, OFT_ABI, walletBase);
 
-  console.log("Sepolia NativeOFTAdapter:", nativeOFT_Sepolia.address);
-  console.log("Amoy OFT:", oft_Amoy.address);
+  console.log("Nexus NativeOFTAdapter:", nativeOFT_Nexus.address);
+  console.log("Base OFT:", oft_Base.address);
 
   // 1) Wire peers
   console.log("\n[1/4] Connecting peers...");
-  const wantPeerOnNexus = toBytes32Address(ADDR_SEPOLIA_OFT);
-  const wantPeerOnSepolia = toBytes32Address(ADDR_NEXUS_NATIVE_OFT);
+  const wantPeerOnNexus = toBytes32Address(ADDR_BASE_OFT);
 
-  const currentPeerOnNexus = await nativeOFT_Nexus.peers(EID_SEPOLIA);
+  const currentPeerOnNexus = await nativeOFT_Nexus.peers(EID_BASE);
   if (currentPeerOnNexus.toLowerCase() !== wantPeerOnNexus.toLowerCase()) {
-    const tx = await nativeOFT_Nexus.setPeer(EID_SEPOLIA, wantPeerOnNexus);
-    console.log("  → setPeer on Nexus:", tx.hash);
+    const tx = await nativeOFT_Nexus.setPeer(EID_BASE, wantPeerOnNexus);
+    console.log("  → setPeer on Nexus transaction:", tx.hash);
+    console.log("  → setPeer on Nexus address:", wantPeerOnNexus);
     await tx.wait();
   } else {
-    console.log("  ✓ Sepolia already wired to Nexus: ", currentPeerOnNexus.toLowerCase());
+    console.log("  ✓ Base already wired to Nexus: ", currentPeerOnNexus.toLowerCase());
   }
 
-  // Amoy sometimes needs a higher gas price
-  const forceAmoyGas = async (prov) => {
-    const base = await prov.getGasPrice();
-    const min = ethers.utils.parseUnits("30", "gwei");
-    return base.lt(min) ? min : base;
-  };
+  const wantPeerOnBase = toBytes32Address(ADDR_NEXUS_NATIVE_OFT);
+  const currentPeerOnBase = await oft_Base.peers(EID_NEXUS);
 
-  const amoyGasPrice = await forceAmoyGas(provAmoy);
-  const currentPeerOnSepolia = await oft_Sepolia.peers(EID_NEXUS);
-
-  if (currentPeerOnSepolia.toLowerCase() !== wantPeerOnSepolia.toLowerCase()) {
-    const tx = await oft_Sepolia.setPeer(EID_NEXUS, wantPeerOnSepolia, { gasPrice: amoyGasPrice });
-    console.log("  → setPeer on Sepolia:", tx.hash);
+  if (currentPeerOnBase.toLowerCase() !== wantPeerOnBase.toLowerCase()) {
+    const tx = await oft_Base.setPeer(EID_NEXUS, wantPeerOnBase);
+    console.log("  → setPeer on Base transaction:", tx.hash);
+    console.log("  → setPeer on Base address:", wantPeerOnBase);
     await tx.wait();
   } else {
-    console.log("  ✓ Nexus already wired to Sepolia: ", currentPeerOnSepolia.toLowerCase());
+    console.log("  ✓ Nexus already wired to Base: ", currentPeerOnBase.toLowerCase());
   }
 
-  // 2) (Optional) DVNs / Executor -> Currently not doing anything
-  console.log("\n[2/4] Configuring DVNs & Executor (optional)...");
-  // if (LZV2_DVNS_JSON) {
-  //     console.log('  (skipped here; ensure your contract exposes setConfig if you enable this)');
-  // } else {
-  //     console.log('  (DVNs) skipped — using defaults');
-  // }
-  // if (LZV2_EXECUTOR) {
-  //     console.log('  (skipped here; ensure your contract exposes setConfig if you enable this)');
-  // } else {
-  //     console.log('  (Executor) skipped — using defaults');
-  // }
+  const ENDPOINT_ABI = [
+    "function setConfig(address _oapp, address _lib, (uint32 eid,uint32 configType,bytes config)[] params) external",
+  ];
+
+  // EndpointV2 (Nexus)
+  const endpoint = new ethers.Contract("0x6F475642a6e85809B1c36Fa62763669b1b48DD5B", ENDPOINT_ABI, walletNexus);
+
+  const params = [
+    {
+      eid: 30184, // Base EID
+      configType: 2, // Executor config
+      config: ethers.utils.defaultAbiCoder.encode(
+        ["address", "bytes"],
+        ["0x4208D6E27538189bB48E603D6123A94b8Abe0A0b", "0x"] // executor + extra args
+      ),
+    },
+  ];
+
+  await endpoint.setConfig(
+    "0x012e277911730eE56B7a738Ca306eFB338b11BD4", // your OFT/OApp
+    "0xC39161c743D0307EB9BCc9FEF03eeb9Dc4802de7", // sendUln302
+    params,
+    { gasLimit: 500_000 } // set enough gas
+  );
+  console.log("DONE");
+
+  // console.log(Object.keys(oft_Base.functions));
 
   // 1) Send native Nexus -> Sepolia
 
   const options = Options.newOptions().addExecutorLzReceiveOption(200000, 0).toHex();
 
   const sendParamNexus = {
-    dstEid: EID_SEPOLIA,
+    dstEid: EID_BASE,
     to: toBytes32Address(OWNER_ADDRESS),
-    amountLD: ethers.utils.parseUnits("2", 18),
+    amountLD: ethers.utils.parseUnits("0.01", 18),
     minAmountLD: 0,
     extraOptions: options,
     composeMsg: "0x",
     oftCmd: "0x",
   };
 
-  // // 3) Quote the fee
+  // 3) Quote the fee
   let nativeFee;
   // try {
   const feeResponse = await nativeOFT_Nexus.quoteSend(sendParamNexus, false);
@@ -140,24 +142,24 @@ async function main() {
   nativeFee = ethers.utils.parseUnits("0.3", 18);
   // }
 
-  // Dry-run with callStatic
-  try {
-    const [msgReceipt, oftReceipt] = await nativeOFT_Nexus.callStatic.send(
-      sendParamNexus,
-      { nativeFee, lzTokenFee: 0 },
-      OWNER_ADDRESS, // refund address
-      {
-        value: nativeFee.add(sendParamNexus.amountLD), // tokens + fee
-      }
-    );
+  // // Dry-run with callStatic
+  // try {
+  //   const [msgReceipt, oftReceipt] = await nativeOFT_Nexus.callStatic.send(
+  //     sendParamNexus,
+  //     { nativeFee, lzTokenFee: 0 },
+  //     OWNER_ADDRESS, // refund address
+  //     {
+  //       value: nativeFee.add(sendParamNexus.amountLD), // tokens + fee
+  //     }
+  //   );
 
-    console.log("✅ CallStatic succeeded!");
-    console.log("Message GUID:", msgReceipt.guid);
-    console.log("Expected fee:", msgReceipt.fee.toString());
-    console.log("Amount to be bridged:", oftReceipt.amountReceivedLD.toString());
-  } catch (err) {
-    console.error("❌ CallStatic reverted:", err.reason || err);
-  }
+  //   console.log("✅ CallStatic succeeded!");
+  //   console.log("Message GUID:", msgReceipt.guid);
+  //   console.log("Expected fee:", msgReceipt.fee.toString());
+  //   console.log("Amount to be bridged:", oftReceipt.amountReceivedLD.toString());
+  // } catch (err) {
+  //   console.error("❌ CallStatic reverted:", err.reason || err);
+  // }
 
   // 4) Send
   // let txSend;

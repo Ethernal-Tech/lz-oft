@@ -80,6 +80,7 @@
   "keywords": [],
   "author": "",
   "dependencies": {
+    "@layerzerolabs/metadata-tools": "^3.0.1",
     "@layerzerolabs/oft-evm-upgradeable": "^3.1.0"
   }
 }
