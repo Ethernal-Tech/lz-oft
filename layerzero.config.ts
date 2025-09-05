@@ -35,7 +35,7 @@ export default async function () {
   ]);
 
   return {
-    contracts: [{ contract: baseContract }, { contract: bnbContract }],
+    contracts: [{ contract: nexusContract }, { contract: baseContract }, { contract: bnbContract }],
     connections,
   };
 }
