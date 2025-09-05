@@ -78,35 +78,9 @@ async function main() {
   console.log("Base OFT:", oft_Base.address);
   console.log("BNB OFT:", oft_Bnb.address);
 
-  // 1) Wire peers
-  // console.log("\n[1/4] Connecting peers...");
-  // const wantPeerOnNexus = toBytes32Address(ADDR_BASE_OFT);
-
-  // const currentPeerOnNexus = await nativeOFT_Nexus.peers(EID_BASE);
-  // if (currentPeerOnNexus.toLowerCase() !== wantPeerOnNexus.toLowerCase()) {
-  //   const tx = await nativeOFT_Nexus.setPeer(EID_BASE, wantPeerOnNexus);
-  //   console.log("  → setPeer on Nexus transaction:", tx.hash);
-  //   console.log("  → setPeer on Nexus address:", wantPeerOnNexus);
-  //   await tx.wait();
-  // } else {
-  //   console.log("  ✓ Base already wired to Nexus: ", currentPeerOnNexus.toLowerCase());
-  // }
-
-  // const wantPeerOnBase = toBytes32Address(ADDR_NEXUS_NATIVE_OFT);
-  // const currentPeerOnBase = await oft_Base.peers(EID_NEXUS);
-
-  // if (currentPeerOnBase.toLowerCase() !== wantPeerOnBase.toLowerCase()) {
-  //   const tx = await oft_Base.setPeer(EID_NEXUS, wantPeerOnBase);
-  //   console.log("  → setPeer on Base transaction:", tx.hash);
-  //   console.log("  → setPeer on Base address:", wantPeerOnBase);
-  //   await tx.wait();
-  // } else {
-  //   console.log("  ✓ Nexus already wired to Base: ", currentPeerOnBase.toLowerCase());
-  // }
-
   // console.log(Object.keys(oft_Base.functions));
 
-  // 1) Send native Nexus -> Sepolia
+  // Send tokens Nexus -> BNB
 
   // const sendParamNexus = {
   //   dstEid: EID_BNB,
@@ -118,7 +92,7 @@ async function main() {
   //   oftCmd: "0x",
   // };
 
-  // 3) Quote the fee
+  // Quote the fee
   // let nativeFee;
   // try {
   //   const feeResponse = await nativeOFT_Nexus.quoteSend(sendParamNexus, false);
@@ -129,7 +103,7 @@ async function main() {
   //   nativeFee = ethers.utils.parseUnits("0.3", 18);
   // }
 
-  // // Dry-run with callStatic
+  // Dry-run with callStatic
   // try {
   //   const [msgReceipt, oftReceipt] = await nativeOFT_Nexus.callStatic.send(
   //     sendParamNexus,
@@ -148,7 +122,7 @@ async function main() {
   //   console.error("❌ CallStatic reverted:", err.reason || err);
   // }
 
-  // 4) Send
+  // Send
   // let txSend;
   // try {
   //   txSend = await nativeOFT_Nexus.send(sendParamNexus, { nativeFee, lzTokenFee: 0 }, OWNER_ADDRESS, {
@@ -162,8 +136,40 @@ async function main() {
   //   process.exit(1);
   // }
 
-  // Sending Back tokens
-  const sendParamBNB = {
+  // Sending from BNB to Base
+  // const sendParamBNB = {
+  //   dstEid: EID_BASE,
+  //   to: toBytes32Address(OWNER_ADDRESS),
+  //   amountLD: ethers.utils.parseUnits("0.01", 18),
+  //   minAmountLD: ethers.utils.parseUnits("0.01", 18),
+  //   extraOptions: "0x",
+  //   composeMsg: "0x",
+  //   oftCmd: "0x",
+  // };
+
+  // try {
+  //   const feeResponse = await oft_Bnb.quoteSend(sendParamBNB, false);
+  //   nativeFee = feeResponse.nativeFee;
+  //   console.log("Quoted fee:", fmt(nativeFee), "BNB");
+  // } catch (e) {
+  //   console.warn("Quote failed, using fallback fee 0.3 BNB");
+  //   nativeFee = ethers.utils.parseUnits("0.3", 18);
+  // }
+
+  // try {
+  //   txSend = await oft_Bnb.send(sendParamBNB, { nativeFee, lzTokenFee: 0 }, walletBnb.address, {
+  //     value: nativeFee, // only once!
+  //     gasLimit: 1_500_000,
+  //   });
+  //   await txSend.wait();
+  //   console.log("Send tx hash:", txSend.hash);
+  // } catch (e) {
+  //   console.error("Send failed:", e);
+  //   process.exit(1);
+  // }
+
+  // Sending from Base to NEXUS
+  const sendParamBase = {
     dstEid: EID_NEXUS,
     to: toBytes32Address(OWNER_ADDRESS),
     amountLD: ethers.utils.parseUnits("0.01", 18),
@@ -174,16 +180,16 @@ async function main() {
   };
 
   try {
-    const feeResponse = await oft_Bnb.quoteSend(sendParamBNB, false);
+    const feeResponse = await oft_Base.quoteSend(sendParamBase, false);
     nativeFee = feeResponse.nativeFee;
-    console.log("Quoted fee:", fmt(nativeFee), "BNB");
+    console.log("Quoted fee:", fmt(nativeFee), "ETH");
   } catch (e) {
-    console.warn("Quote failed, using fallback fee 0.3 BNB");
+    console.warn("Quote failed, using fallback fee 0.3 ETH");
     nativeFee = ethers.utils.parseUnits("0.3", 18);
   }
 
   try {
-    txSend = await oft_Bnb.send(sendParamBNB, { nativeFee, lzTokenFee: 0 }, walletBnb.address, {
+    txSend = await oft_Base.send(sendParamBase, { nativeFee, lzTokenFee: 0 }, walletBase.address, {
       value: nativeFee, // only once!
       gasLimit: 1_500_000,
     });
