@@ -52,21 +52,22 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    "base-mainnet": {
-      eid: EndpointId.BASE_V2_MAINNET,
-      url: process.env.RPC_URL_BASE || "https://mainnet.base.org",
-      accounts,
-    },
-    "nexus-testnet": {
-      eid: EndpointId.APEXFUSIONNEXUS_V2_TESTNET,
-      url: process.env.RPC_URL_NEXUS_TESTNET || "https://rpc.nexus.testnet.apexfusion.org",
-      accounts,
-    },
     "nexus-mainnet": {
       eid: EndpointId.APEXFUSIONNEXUS_V2_MAINNET,
       url: process.env.RPC_URL_NEXUS_MAINNET || "https://rpc.nexus.mainnet.apexfusion.org",
       accounts,
     },
+    "base-mainnet": {
+      eid: EndpointId.BASE_V2_MAINNET,
+      url: process.env.RPC_URL_BASE_MAINNET || "https://mainnet.base.org",
+      accounts,
+    },
+    "bnb-mainnet": {
+      eid: EndpointId.BSC_V2_MAINNET,
+      url: process.env.RPC_URL_BNB_MAINNET || "https://bsc-dataseed.bnbchain.org",
+      accounts,
+    },
+
     hardhat: {
       // Need this for testing because TestHelperOz5.sol is exceeding the compiled contract size limit
       allowUnlimitedContractSize: true,

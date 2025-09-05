@@ -13,6 +13,11 @@ const baseContract: OmniPointHardhat = {
   contractName: "MyOFT",
 };
 
+const bnbContract: OmniPointHardhat = {
+  eid: EndpointId.BSC_V2_MAINNET,
+  contractName: "MyOFT",
+};
+
 const EVM_ENFORCED_OPTIONS: OAppEnforcedOption[] = [
   {
     msgType: 1,
@@ -24,11 +29,11 @@ const EVM_ENFORCED_OPTIONS: OAppEnforcedOption[] = [
 
 export default async function () {
   const connections = await generateConnectionsConfig([
-    [nexusContract, baseContract, [["LayerZero Labs"], []], [5, 10], [EVM_ENFORCED_OPTIONS, EVM_ENFORCED_OPTIONS]],
+    [baseContract, bnbContract, [["LayerZero Labs"], []], [5, 10], [EVM_ENFORCED_OPTIONS, EVM_ENFORCED_OPTIONS]],
   ]);
 
   return {
-    contracts: [{ contract: nexusContract }, { contract: baseContract }],
+    contracts: [{ contract: baseContract }, { contract: bnbContract }],
     connections,
   };
 }
