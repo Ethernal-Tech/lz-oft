@@ -29,6 +29,8 @@ const EVM_ENFORCED_OPTIONS: OAppEnforcedOption[] = [
 
 export default async function () {
   const connections = await generateConnectionsConfig([
+    [nexusContract, baseContract, [["LayerZero Labs"], []], [5, 10], [EVM_ENFORCED_OPTIONS, EVM_ENFORCED_OPTIONS]],
+    [nexusContract, bnbContract, [["LayerZero Labs"], []], [5, 10], [EVM_ENFORCED_OPTIONS, EVM_ENFORCED_OPTIONS]],
     [baseContract, bnbContract, [["LayerZero Labs"], []], [5, 10], [EVM_ENFORCED_OPTIONS, EVM_ENFORCED_OPTIONS]],
   ]);
 
