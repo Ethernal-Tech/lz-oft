@@ -10,6 +10,8 @@
 
 <h1 align="center">NativeOFTAdapter Example</h1>
 
+<p align="center">In case of new deployment remove content of deployments folder</p>
+
 <p align="center">
   <a href="https://docs.layerzero.network/v2/developers/evm/oft/adapter" style="color: #a77dff">Quickstart</a> | <a href="https://docs.layerzero.network/contracts/oapp-configuration" style="color: #a77dff">Configuration</a> | <a href="https://docs.layerzero.network/contracts/options" style="color: #a77dff">Message Execution Options</a> | <a href="https://docs.layerzero.network/contracts/endpoint-addresses" style="color: #a77dff">Endpoint Addresses</a>
 </p>
